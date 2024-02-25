@@ -1,0 +1,43 @@
+version: '3'
+services:
+## -----------------------Servicio -----------------------------
+  db_app_task_manager:
+    image: "postgres:13-alpine"
+    restart: always
+    environment:
+      POSTGRES_DB: db_task_manager
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    expose:
+      - "5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 2s
+      timeout: 5s
+      retries: 5
+    networks:
+      - web_global
+
+  app_task_manager:
+    container_name: task_manager_interview
+    build: .
+    environment:
+      DATABASE_URL:  postgresql://postgres:postgres@db_task_manager:5432/
+    ports:
+      - "5000:5000"
+    expose:
+      - "5000"
+    depends_on:
+      db_app_task_manager:
+        condition: service_healthy
+    volumes:
+      - .:/django-docker
+    networks:
+      - web_global
+    env_file:
+      - ./.env
+
+networks:
+  web_global:

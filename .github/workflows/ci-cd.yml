@@ -2,12 +2,12 @@ name: App TASK MANAGER
 run-name: ${{ github.actor }} is deploy App task manager 🚀
 on:
   push:
-    branches: [feature/PROY**, fix/FIX**]
+    branches: [feature/HU**, fix/FIX**]
 
 jobs:
   test-app:
     name: Correr-test
-    if:  ${{ contains(github.event.head_commit.message, 'app_candidate') }}
+    if:  ${{ contains(github.event.head_commit.message, 'develop') }}
     runs-on: ubuntu-latest
     outputs:
       salida: ${{ steps.imprimir.outputs.respuesta }}
@@ -18,12 +18,12 @@ jobs:
       - name: postgres test
         uses: ikalnytskyi/action-setup-postgres@v4
         with:
-          database: candidate_db
+          database: db_task_manager
 
       - name: Configuración de entorno de python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+          python-version: '3.10'
 
       - name: Instalación de app
         run: |
@@ -31,10 +31,17 @@ jobs:
           pip install -r requirements.txt
 
       - name: Correr pruebas app
-        id: correr-pruebas-usuarios
+        id: correr-pruebas
         if: ${{ contains(github.event.head_commit.message, 'app') }}
         run: |
-          pytest --cov=. -v -s --cov-fail-under=70
+          python manage.py makemigrations
+          python manage.py migrate
+          coverage run manage.py test
+          coverage report -m
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Validar resultado con errores
         if: ${{ failure() }}
@@ -48,22 +55,23 @@ jobs:
         run: echo "::set-output name=respuesta::${MENSAJE_EXITO}"
 
 
-  merge-branch-develop:
+  merege-ramafuncion-desarrollo:
     name: Merge-dev
-    needs: [test-app]
+    needs: test-app
     runs-on: ubuntu-latest
+    outputs:
+      salida: ${{ steps.imprimir.outputs.respuesta }}
     steps:
-      - uses: actions/checkout@master
-      - name: Branch name
-        run: |
-          echo running on branch ${GITHUB_REF##*/}
-      - name: Mezcla ${GITHUB_REF##*/} -> develop
-        uses: devmasx/merge-branch@master
-        with:
-          type: now
-          target_branch: develop
-          message: Merge ${GITHUB_REF##*/} into develop
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Mezcla ${{ github.ref }} -> develop
+      if: echo ${{needs.test-app.outputs.salida}}
+      uses: tukasz/direct-merge-action@master
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        source-branch: ${{ github.ref }}
+        target-branch: develop
+      env:
+        MENSAJE_MERGE: Merge successful
+
 
   codecov:
     name: upload coverage codecov
@@ -74,11 +82,11 @@ jobs:
       - name: postgres test
         uses: ikalnytskyi/action-setup-postgres@v4
         with:
-          database: candidate_db
+          database: db_task_manager
       - name: Configuración de entorno de python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+          python-version: '3.10'
 
       - name: Instalación de app
         run: |
@@ -86,9 +94,12 @@ jobs:
           pip install -r requirements.txt
 
       - name: Correr pruebas app
-        id: correr-pruebas-usuarios
+        id: correr-pruebas
         run: |
-          pytest --cov=app test_a.py --cov-report=xml
+          python manage.py makemigrations
+          python manage.py migrate
+          coverage run manage.py test
+          coverage xml
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         env:
