@@ -59,19 +59,7 @@ class TestAssignment(TestCase):
         create_account_2.save()
         response = Client().get('/api/task/1')
         respon = json.loads(response.content)
-        self.assertEqual(len(respon), 0)
-
-    def test_delete_task(self):
-        create_account_1 = Assignment(
-            title=self.task_fake['title'],
-            description=self.task_fake['description'],
-            status=self.task_fake['status']
-        )
-        create_account_1.save()
-        response = Client().delete('/api/task/1/')
-        respon = json.loads(response.content)
-        self.assertEqual(respon['success'], True)
-        self.assertEqual(respon['message'], 'Assignment was delete')
+        self.assertEqual(len(respon), 1)
 
     def test_update_task(self):
         create_account_1 = Assignment(
@@ -104,3 +92,15 @@ class TestAssignment(TestCase):
         respon = json.loads(response.content)
         self.assertEqual(respon['success'], True)
         self.assertEqual(respon['task']['status'], new_data['status'])
+
+    def test_delete_task(self):
+        create_account_1 = Assignment(
+            title=self.task_fake['title'],
+            description=self.task_fake['description'],
+            status=self.task_fake['status']
+        )
+        create_account_1.save()
+        response = Client().delete('/api/task/1/')
+        respon = json.loads(response.content)
+        self.assertEqual(respon['success'], True)
+        self.assertEqual(respon['message'], 'Assignment was delete')

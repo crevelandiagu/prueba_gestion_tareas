@@ -33,6 +33,7 @@ jobs:
         id: correr-pruebas
         if: ${{ contains(github.event.head_commit.message, 'develop') }}
         run: |
+          export TEST_APP=True
           python manage.py makemigrations
           python manage.py migrate
           coverage run manage.py test
