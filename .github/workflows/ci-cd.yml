@@ -37,7 +37,11 @@ jobs:
           python manage.py makemigrations
           python manage.py migrate
           coverage run manage.py test
-          coverage report -m 
+          coverage report -m
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Validar resultado con errores
         if: ${{ failure() }}
@@ -51,22 +55,23 @@ jobs:
         run: echo "::set-output name=respuesta::${MENSAJE_EXITO}"
 
 
-  merge-branch-develop:
+  merege-ramafuncion-desarrollo:
     name: Merge-dev
-    needs: [test-app]
+    needs: test-app
     runs-on: ubuntu-latest
+    outputs:
+      salida: ${{ steps.imprimir.outputs.respuesta }}
     steps:
-      - uses: actions/checkout@master
-      - name: Branch name
-        run: |
-          echo running on branch ${GITHUB_REF##*/}
-      - name: Mezcla ${{ github.ref }}  -> develop
-        uses: devmasx/merge-branch@master
-        with:
-          type: now
-          target_branch: develop
-          message: Merge ${{ github.ref }}  into develop
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Mezcla ${{ github.ref }} -> develop
+      if: echo ${{needs.test-app.outputs.salida}}
+      uses: tukasz/direct-merge-action@master
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        source-branch: ${{ github.ref }}
+        target-branch: develop
+      env:
+        MENSAJE_MERGE: Merge successful
+
 
   codecov:
     name: upload coverage codecov
@@ -89,7 +94,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Correr pruebas app
-        id: correr-pruebas-usuarios
+        id: correr-pruebas
         run: |
           python manage.py makemigrations
           python manage.py migrate
