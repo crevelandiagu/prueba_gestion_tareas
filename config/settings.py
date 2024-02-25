@@ -72,7 +72,7 @@ DATABASES = {
         'NAME': os.getenv("DB_NAME", 'db_task_manager'),
         'USER': os.getenv("DB_USER", 'postgres'),
         'PASSWORD': os.getenv("DB_PASSWORD", 'postgres'),
-        'HOST': os.getenv("DB_HOST", 'db_app_task_manager'),
+        'HOST': os.getenv("DB_HOST", 'localhost'),
         'PORT': os.getenv("DB_PORT", '5432'),
     }
 }
