@@ -23,7 +23,7 @@ jobs:
       - name: Configuración de entorno de python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.11'
+          python-version: '3.10'
 
       - name: Instalación de app
         run: |
@@ -81,7 +81,7 @@ jobs:
       - name: Configuración de entorno de python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+          python-version: '3.10'
 
       - name: Instalación de app
         run: |
