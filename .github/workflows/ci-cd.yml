@@ -38,6 +38,7 @@ jobs:
           python manage.py migrate
           coverage run manage.py test
           coverage report -m
+          coverage xml
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         env:
@@ -59,18 +60,18 @@ jobs:
     name: Merge-dev
     needs: test-app
     runs-on: ubuntu-latest
-    outputs:
-      salida: ${{ steps.imprimir.outputs.respuesta }}
     steps:
-    - name: Mezcla ${{ github.ref }} -> develop
-      if: echo ${{needs.test-app.outputs.salida}}
-      uses: tukasz/direct-merge-action@master
-      with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        source-branch: ${{ github.ref }}
-        target-branch: develop
-      env:
-        MENSAJE_MERGE: Merge successful
+      - uses: actions/checkout@master
+
+      - name: Merge development -> staging
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: ${{ github.ref }}
+          target_branch: develop
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          MENSAJE_MERGE: Merge successful
 
 
   codecov:
