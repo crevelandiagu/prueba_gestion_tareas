@@ -1,0 +1,1 @@
+STATUS = ['Nuevo', 'En Progreso', 'En Revisión', 'Completado']
